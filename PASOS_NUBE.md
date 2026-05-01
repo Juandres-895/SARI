@@ -23,18 +23,11 @@ Puedes probar enviándole un mensaje desde WhatsApp. El bot responderá con el m
 ```bash
 git add .
 git commit -m "Add WhatsApp authentication"
-git pushGuardar Sesión en GitHub ⏳ POR HACER
+## PASO 3: Guardar Sesión en GitHub ✅ COMPLETADO
 
-Ahora necesitamos guardar los archivos de sesión en GitHub (`.wwebjs_auth/`) para que la nube pueda usarlos:
+✅ **Los archivos de sesión `.wwebjs_auth/` ya están en GitHub**
 
-```bash
-cd "c:\Users\Juan Andrés Londoño\Desktop\SARI"
-git add .wwebjs_auth/
-git commit -m "Add WhatsApp session authentication"
-git push
-```
-
-**Esto permite que el bot en la nube funcione sin necesidad de escanear QR nuevamente.**
+Esto significa que el bot en la nube puede funcionar sin escanear QR nuevamente.
 ### ⭐ OPCIÓN 1: Railway (RECOMENDADO - Más fácil)
 
 1. Ve a **https://railway.app**
@@ -74,13 +67,15 @@ Configuración más compleja, contacta si necesitas ayuda.
 
 ---
 
-## PASO 5: Monitoreo
+## PASO 5: Monitoreo en Vivo
 
-Una vez desplegado en la nube:
+Una vez desplegado en Railway:
 
-1. Revisa los **logs** de tu plataforma cada día
-2. Verifica que el bot responda mensajes
-3. Si se desconecta, la plataforma lo reiniciará automáticamente
+1. Ve al dashboard de Railway
+2. Haz click en **"View logs"** 
+3. Verás los logs en tiempo real del bot
+4. Busca: `🚀 ALFABOT en línea` (significa que está funcionando)
+5. Prueba enviándole un mensaje desde WhatsApp
 
 ---
 
@@ -114,7 +109,12 @@ Una vez desplegado en la nube:
 
 ## 📞 PRÓXIMAS ACCIONES
 
-1. **Ejecuta localmente**: `npm start` y escanea QR
-2. **Haz test**: Envía mensajes al bot desde WhatsApp
-3. **Sube a la nube**: Elige Railway o Google Cloud
-4. **¡Disfruta!** 🎉 Tu bot ahora corre sin detenerse
+1. **✅ Abre tu navegador:** https://railway.app
+2. **✅ Login con GitHub**
+3. **✅ Crea nuevo proyecto y selecciona SARI**
+4. **✅ Railway despliega automáticamente**
+5. **✅ Tu bot está online en la nube ☁️**
+
+---
+
+**Guía completa:** Ver [DEPLOY_RAILWAY.md](DEPLOY_RAILWAY.md)
