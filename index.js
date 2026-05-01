@@ -27,6 +27,7 @@ let ticketEnCalificacion = {};
 let ticketsManualPorChat = {};
 let mensajesBotEnviados = new Set();
 let mensajesBotRecientesPorChat = {};
+let lastQrUpdatedAt = 0;
 
 function registrarMensajeBotReciente(chatID, cuerpo) {
     const texto = String(cuerpo || '').trim();
@@ -277,6 +278,7 @@ async function enviarDatosFinales(numero, datos, chatID) {
 
 client.on('qr', async qr => {
     console.log('\n🔐 NUEVA AUTENTICACIÓN REQUERIDA\n');
+    lastQrUpdatedAt = Date.now();
 
     // Generar QR en terminal (versión compacta en logs para que sea escaneable)
     // compact = true imprime la versión pequeña (mejor para logs)
@@ -659,25 +661,73 @@ client.on('message_reaction', async (reaction) => {
 
 // Iniciar servidor HTTP para servir QR en web
 const http = require('http');
+
+function setNoCacheHeaders(res, contentType) {
+    res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        Pragma: 'no-cache',
+        Expires: '0',
+        'Surrogate-Control': 'no-store'
+    });
+}
+
 const server = http.createServer((req, res) => {
-    if (req.url === '/' || req.url === '/qr' || req.url === '/qr.html') {
-        const qrPath = path.join(process.cwd(), 'qr.html');
-        if (fs.existsSync(qrPath)) {
-            fs.readFile(qrPath, (err, data) => {
-                if (!err) {
-                    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-                    res.end(data);
-                    return;
-                }
-            });
+    const pathname = String(req.url || '/').split('?')[0];
+
+    if (pathname === '/' || pathname === '/qr' || pathname === '/qr.html') {
+        const imgPath = path.join(process.cwd(), 'last-qr.png');
+
+        if (!fs.existsSync(imgPath)) {
+            setNoCacheHeaders(res, 'text/html; charset=utf-8');
+            res.end(`
+                <!doctype html>
+                <html lang="es">
+                <head>
+                    <meta charset="utf-8" />
+                    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+                    <meta http-equiv="Pragma" content="no-cache" />
+                    <meta http-equiv="Expires" content="0" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <title>ALFABOT - Esperando QR</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; padding: 24px;">
+                    <h2>Esperando QR...</h2>
+                    <p>El bot aún no ha emitido un QR nuevo. Esta página se recarga cada 10 segundos.</p>
+                    <script>setTimeout(() => location.reload(), 10000);</script>
+                </body>
+                </html>
+            `);
+            return;
         }
-        res.writeHead(404);
-        res.end('QR no disponible aún');
-    } else if (req.url === '/last-qr.png') {
+
+        const stamp = lastQrUpdatedAt || Date.now();
+        setNoCacheHeaders(res, 'text/html; charset=utf-8');
+        res.end(`
+            <!doctype html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8" />
+                <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+                <meta http-equiv="Pragma" content="no-cache" />
+                <meta http-equiv="Expires" content="0" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>ALFABOT - QR en vivo</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; padding: 24px; text-align:center;">
+                <h2>Escanea este QR (se actualiza automático)</h2>
+                <p>Actualizado: ${new Date(stamp).toLocaleString()}</p>
+                <img src="/last-qr.png?t=${stamp}" alt="QR" style="max-width: 95vw; width: 380px; border: 1px solid #ddd;" />
+                <p>Si expira, esta página se recarga cada 10 segundos.</p>
+                <script>setTimeout(() => location.reload(), 10000);</script>
+            </body>
+            </html>
+        `);
+    } else if (pathname === '/last-qr.png') {
         const imgPath = path.join(process.cwd(), 'last-qr.png');
         if (fs.existsSync(imgPath)) {
             const stream = fs.createReadStream(imgPath);
-            res.writeHead(200, { 'Content-Type': 'image/png' });
+            setNoCacheHeaders(res, 'image/png');
             stream.pipe(res);
             return;
         }
