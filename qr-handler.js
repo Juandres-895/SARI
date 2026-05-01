@@ -203,7 +203,30 @@ function generateQRTerminal(qrData, compact = true) {
     }
 }
 
+/**
+ * Genera un archivo PNG con el QR
+ * @param {string} qrData
+ * @param {string} outputPath
+ * @returns {Promise<string>} ruta del archivo generado
+ */
+async function generateQRImage(qrData, outputPath = './last-qr.png') {
+    try {
+        await QRCode.toFile(outputPath, qrData, {
+            errorCorrectionLevel: 'H',
+            type: 'png',
+            margin: 1,
+            width: 600,
+        });
+        console.log(`✅ QR guardado como imagen: ${outputPath}`);
+        return path.resolve(outputPath);
+    } catch (error) {
+        console.error('❌ Error generando imagen QR:', error.message);
+        throw error;
+    }
+}
+
 module.exports = {
     generateQRHTML,
     generateQRTerminal,
+    generateQRImage,
 };
