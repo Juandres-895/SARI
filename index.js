@@ -5,6 +5,7 @@ const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const { generateQRHTML, generateQRTerminal } = require('./qr-handler');
 
 // Usar variable de entorno o valor por defecto
 const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxn-xzoeM2xpsav8JRwj-Pt8VbojDy_-n96mRgPImTUs1VbTYMT9orr0Pmq5DCtHbLNPw/exec';
@@ -266,7 +267,21 @@ async function enviarDatosFinales(numero, datos, chatID) {
     return null;
 }
 
-client.on('qr', qr => { qrcode.generate(qr, { small: true }); });
+client.on('qr', async qr => {
+    console.log('\n🔐 NUEVA AUTENTICACIÓN REQUERIDA\n');
+
+    // Generar QR en terminal (formato grande)
+    generateQRTerminal(qr);
+
+    // Generar QR en HTML (archivo)
+    try {
+        await generateQRHTML(qr, path.join(process.cwd(), 'qr.html'));
+        console.log('\n💡 TIP: Si el QR es muy pequeño para escanear, abre el archivo qr.html en tu navegador.\n');
+    } catch (error) {
+        console.error('Error generando HTML del QR:', error.message);
+    }
+});
+
 client.on('ready', () => { console.log('🚀 ALFABOT en línea'); });
 client.on('loading_screen', (percent, message) => {
     console.log(`📶 Cargando WhatsApp Web: ${percent}% - ${message}`);
@@ -622,6 +637,36 @@ client.on('message_reaction', async (reaction) => {
             gestionarTemporizadores(chatID);
         }
     } catch (e) { }
+});
+
+// Iniciar servidor HTTP para servir QR en web
+const http = require('http');
+const server = http.createServer((req, res) => {
+    if (req.url === '/' || req.url === '/qr' || req.url === '/qr.html') {
+        const qrPath = path.join(process.cwd(), 'qr.html');
+        if (fs.existsSync(qrPath)) {
+            fs.readFile(qrPath, (err, data) => {
+                if (!err) {
+                    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                    res.end(data);
+                    return;
+                }
+            });
+        }
+        res.writeHead(404);
+        res.end('QR no disponible aún');
+    } else {
+        res.writeHead(404);
+        res.end('404');
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`\n🌐 Servidor HTTP en puerto ${PORT} - Accede a http://localhost:${PORT}/qr para ver el código QR`);
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`📱 En Railway: https://<nombre-railway>.up.railway.app/qr\n`);
+    }
 });
 
 inicializarCliente();

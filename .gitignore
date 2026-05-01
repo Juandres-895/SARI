@@ -9,3 +9,5 @@ build/
 *.log
 yarn.lock
 .wwebjs_cache/
+qr.html
+
