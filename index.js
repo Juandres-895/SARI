@@ -115,12 +115,20 @@ try {
     console.warn(`⚠️  Error ajustando permisos de .wwebjs_auth: ${err.message}`);
 }
 
+// Configuración de Puppeteer: especificar Chrome en Docker
+const puppeteerConfig = {
+    args: puppeteerArgs,
+    headless: 'new'
+};
+
+if (isCloudRuntime) {
+    puppeteerConfig.executablePath = '/usr/bin/chromium-browser';
+    console.log('🐳 Configurado para Docker - usando Chrome en /usr/bin/chromium-browser');
+}
+
 const client = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: {
-        args: puppeteerArgs,
-        headless: 'new'
-    }
+    puppeteer: puppeteerConfig
 });
 
 const sendMessageOriginal = client.sendMessage.bind(client);

@@ -11,9 +11,6 @@ COPY . .
 # Crear directorio para auth con permisos completos
 RUN mkdir -p .wwebjs_auth && chmod 777 .wwebjs_auth
 
-# Ejecutar como root para asegurar permisos en volumen montado
-USER root
-
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 EXPOSE 3000
