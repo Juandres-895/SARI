@@ -12,7 +12,6 @@ COPY . .
 RUN mkdir -p .wwebjs_auth
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 EXPOSE 3000
 
