@@ -1,32 +1,20 @@
 # 🎯 PASOS PARA LLEVAR TU BOT A LA NUBE
 
-## PASO 1: Autenticar el Bot Localmente (CRÍTICO)
+## PASO 1: Autenticar el Bot Localmente (CRÍTICO) ✅ COMPLETADO
 
-Tu bot necesita escanear el QR de WhatsApp. Esto **SOLO se puede hacer localmente**.
+✅ **El bot ya está autenticado y en línea**
 
-```bash
-# En tu computadora:
-cd "c:\Users\Juan Andrés Londoño\Desktop\SARI"
-npm install
-npm start
-```
+Los archivos de sesión se guardaron en `.wwebjs_auth/`
 
-Verás un código QR. **Escanéalo con tu teléfono** (como cuando inicias sesión en WhatsApp Web).
-
-El bot se autenticará y guardará los archivos de sesión en `.wwebjs_auth/`
+Ahora el bot puede recibir y responder mensajes desde WhatsApp.
 
 ---
 
-## PASO 2: Verificar que Funcione Localmente
+## PASO 2: Verificar que Funcione Localmente ✅ COMPLETADO
 
-```bash
-# Si funcionó, verás:
-✅ Iniciando bot en modo: development
-📶 Cargando WhatsApp Web: 100%
-🚀 ALFABOT en línea
-```
+✅ **El bot está respondiendo correctamente**
 
-**Si ves errores**: Revisa los logs, pueden haber problemas con dependencias.
+Puedes probar enviándole un mensaje desde WhatsApp. El bot responderá con el menú inicial.
 
 ---
 
@@ -35,13 +23,18 @@ El bot se autenticará y guardará los archivos de sesión en `.wwebjs_auth/`
 ```bash
 git add .
 git commit -m "Add WhatsApp authentication"
+git pushGuardar Sesión en GitHub ⏳ POR HACER
+
+Ahora necesitamos guardar los archivos de sesión en GitHub (`.wwebjs_auth/`) para que la nube pueda usarlos:
+
+```bash
+cd "c:\Users\Juan Andrés Londoño\Desktop\SARI"
+git add .wwebjs_auth/
+git commit -m "Add WhatsApp session authentication"
 git push
 ```
 
----
-
-## PASO 4: Elegir Plataforma de Nube
-
+**Esto permite que el bot en la nube funcione sin necesidad de escanear QR nuevamente.**
 ### ⭐ OPCIÓN 1: Railway (RECOMENDADO - Más fácil)
 
 1. Ve a **https://railway.app**
@@ -105,9 +98,9 @@ Una vez desplegado en la nube:
 - La sesión expiró, vuelve a ejecutar localmente y escanea QR nuevamente
 
 ---
-
-## ✨ RESUMEN FINAL
-
+✅ HECHO |
+| 2️⃣ Verificar funcionamiento | ✅ HECHO |
+| 3️⃣ Guardar sesión en GitHub | ⏳ Próximo paso
 | Paso | ¿Completo? |
 |------|-----------|
 | 1️⃣ Autenticar localmente | ⏳ Todavía por hacer |
