@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: alfabot-sari
+    environment:
+      - NODE_ENV=production
+      - SCRIPT_URL=${SCRIPT_URL}
+    volumes:
+      - ./.wwebjs_auth:/app/.wwebjs_auth
+      - ./.wwebjs_cache:/app/.wwebjs_cache
+    restart: unless-stopped
+    stdin_open: true
+    tty: true

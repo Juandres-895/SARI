@@ -1,16 +1,10 @@
-require('dotenv').config();
-require('./error-handler'); // Agregar manejo global de errores
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
-// Usar variable de entorno o valor por defecto
-const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxn-xzoeM2xpsav8JRwj-Pt8VbojDy_-n96mRgPImTUs1VbTYMT9orr0Pmq5DCtHbLNPw/exec';
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-console.log(`✅ Iniciando bot en modo: ${NODE_ENV}`);
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxn-xzoeM2xpsav8JRwj-Pt8VbojDy_-n96mRgPImTUs1VbTYMT9orr0Pmq5DCtHbLNPw/exec';
 
 const startupTime = Math.floor(Date.now() / 1000);
 
