@@ -5,7 +5,7 @@ const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { generateQRHTML, generateQRTerminal } = require('./qr-handler');
+const { generateQRHTML, generateQRTerminal, generateQRImage } = require('./qr-handler');
 
 // Usar variable de entorno o valor por defecto
 const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxn-xzoeM2xpsav8JRwj-Pt8VbojDy_-n96mRgPImTUs1VbTYMT9orr0Pmq5DCtHbLNPw/exec';
@@ -85,16 +85,24 @@ function desactivarModoManualPorTicket(chatID, ticketID) {
     console.log(`🔒 manual_still_on chat=${chatID} active_manual_tickets=${setManual.size}`);
 }
 
+const isCloudRuntime = NODE_ENV === 'production' || !!process.env.RAILWAY_ENVIRONMENT;
+const puppeteerArgs = isCloudRuntime
+    ? [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process'
+    ]
+    : [
+        // En local (Windows), --single-process suele romper Chromium y causa
+        // "Navigating frame was detached" al inicializar WhatsApp Web.
+    ];
+
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--single-process'
-        ],
+        args: puppeteerArgs,
         headless: 'new'
     }
 });
@@ -280,6 +288,15 @@ client.on('qr', async qr => {
         console.log('\n💡 TIP: Si el QR es muy pequeño para escanear, abre el archivo qr.html en tu navegador.\n');
     } catch (error) {
         console.error('Error generando HTML del QR:', error.message);
+    }
+
+    // Guardar imagen PNG del último QR
+    try {
+        const pngPath = path.join(process.cwd(), 'last-qr.png');
+        await generateQRImage(qr, pngPath);
+        console.log(`✅ Último QR guardado: ${pngPath}`);
+    } catch (e) {
+        console.error('Error guardando last-qr.png:', e.message);
     }
 });
 
@@ -656,6 +673,16 @@ const server = http.createServer((req, res) => {
         }
         res.writeHead(404);
         res.end('QR no disponible aún');
+    } else if (req.url === '/last-qr.png') {
+        const imgPath = path.join(process.cwd(), 'last-qr.png');
+        if (fs.existsSync(imgPath)) {
+            const stream = fs.createReadStream(imgPath);
+            res.writeHead(200, { 'Content-Type': 'image/png' });
+            stream.pipe(res);
+            return;
+        }
+        res.writeHead(404);
+        res.end('last-qr.png no disponible');
     } else {
         res.writeHead(404);
         res.end('404');
