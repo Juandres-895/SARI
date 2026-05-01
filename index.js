@@ -100,6 +100,21 @@ const puppeteerArgs = isCloudRuntime
         // "Navigating frame was detached" al inicializar WhatsApp Web.
     ];
 
+// Asegurar que la carpeta .wwebjs_auth existe con permisos correctos
+const authDir = path.join(process.cwd(), '.wwebjs_auth');
+try {
+    if (!fs.existsSync(authDir)) {
+        fs.mkdirSync(authDir, { recursive: true, mode: 0o777 });
+        console.log(`📁 Carpeta .wwebjs_auth creada con permisos: 0o777`);
+    } else {
+        // Asegurar permisos incluso si la carpeta ya existe
+        fs.chmodSync(authDir, 0o777);
+        console.log(`📁 Permisos de .wwebjs_auth ajustados a: 0o777`);
+    }
+} catch (err) {
+    console.warn(`⚠️  Error ajustando permisos de .wwebjs_auth: ${err.message}`);
+}
+
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
