@@ -9,9 +9,3 @@ build/
 *.log
 yarn.lock
 .wwebjs_cache/
-.wwebjs_auth/session/Default/Cache/
-.wwebjs_auth/session/Default/Code Cache/
-.wwebjs_auth/session/Default/GPUCache/
-.wwebjs_auth/session/Default/Cache Back/
-.wwebjs_auth/session/Default/Cookies*
-.wwebjs_auth/session/Default/Service Worker/
