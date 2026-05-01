@@ -270,8 +270,9 @@ async function enviarDatosFinales(numero, datos, chatID) {
 client.on('qr', async qr => {
     console.log('\n🔐 NUEVA AUTENTICACIÓN REQUERIDA\n');
 
-    // Generar QR en terminal (formato grande)
-    generateQRTerminal(qr);
+    // Generar QR en terminal (versión compacta en logs para que sea escaneable)
+    // compact = true imprime la versión pequeña (mejor para logs)
+    generateQRTerminal(qr, true);
 
     // Generar QR en HTML (archivo)
     try {
@@ -661,12 +662,33 @@ const server = http.createServer((req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`\n🌐 Servidor HTTP en puerto ${PORT} - Accede a http://localhost:${PORT}/qr para ver el código QR`);
-    if (process.env.NODE_ENV === 'production') {
-        console.log(`📱 En Railway: https://<nombre-railway>.up.railway.app/qr\n`);
-    }
-});
+const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
+let currentPort = DEFAULT_PORT;
+let listenAttempts = 0;
+const MAX_ATTEMPTS = 5;
+
+function startServerOnPort(port) {
+    listenAttempts++;
+    server.once('error', (err) => {
+        if (err && err.code === 'EADDRINUSE' && listenAttempts < MAX_ATTEMPTS) {
+            console.warn(`Puerto ${port} en uso, intentando ${port + 1}...`);
+            currentPort = port + 1;
+            startServerOnPort(currentPort);
+            return;
+        }
+
+        console.error('Error en servidor QR:', err && err.message ? err.message : err);
+        // No detener la aplicación por un error de puerto; el bot seguirá intentando inicializar
+    });
+
+    server.listen(port, () => {
+        console.log(`\n🌐 Servidor HTTP en puerto ${port} - Accede a http://localhost:${port}/qr para ver el código QR`);
+        if (process.env.NODE_ENV === 'production') {
+            console.log(`📱 En Railway: https://<nombre-railway>.up.railway.app/qr\n`);
+        }
+    });
+}
+
+startServerOnPort(currentPort);
 
 inicializarCliente();

@@ -170,11 +170,23 @@ async function generateQRHTML(qrData, outputPath = './qr.html') {
 }
 
 /**
- * Genera un QR en terminal con mejor formato
+ * Genera un QR en terminal; por defecto imprime la versión compacta para logs.
+ * @param {string} qrData
+ * @param {boolean} compact - si true usa la versión pequeña (más legible en logs)
  */
-function generateQRTerminal(qrData) {
+function generateQRTerminal(qrData, compact = true) {
     try {
         const QRCodeTerminal = require('qrcode-terminal');
+
+        if (compact) {
+            // Versión reducida adecuada para logs
+            QRCodeTerminal.generate(qrData, { small: true }, (code) => {
+                console.log('\n' + code + '\n');
+            });
+            return;
+        }
+
+        // Versión más grande/estética (solo para desarrollo local)
         console.log('\n' + '█'.repeat(60));
         console.log('█' + ' '.repeat(58) + '█');
         console.log('█' + '  ESCANEA ESTE CÓDIGO QR CON WHATSAPP  '.padEnd(58) + '█');
