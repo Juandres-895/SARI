@@ -84,9 +84,33 @@ function desactivarModoManualPorTicket(chatID, ticketID) {
     console.log(`🔒 manual_still_on chat=${chatID} active_manual_tickets=${setManual.size}`);
 }
 
+// Debug de sesión
+const sessionPath = path.join(process.cwd(), '.wwebjs_auth', 'session');
+console.log(`📁 Session path: ${sessionPath}`);
+console.log(`📁 CWD: ${process.cwd()}`);
+
+// Verificar si existen los archivos de sesión
+if (fs.existsSync(sessionPath)) {
+    try {
+        const files = fs.readdirSync(sessionPath, { recursive: true });
+        console.log(`✅ Session directory exists with ${files.length} files`);
+        const defaultPath = path.join(sessionPath, 'Default');
+        if (fs.existsSync(defaultPath)) {
+            const defaultFiles = fs.readdirSync(defaultPath);
+            console.log(`📂 /Default contains: ${defaultFiles.join(', ')}`);
+        }
+    } catch (e) {
+        console.error(`❌ Error reading session directory: ${e.message}`);
+    }
+} else {
+    console.log(`⚠️  Session directory does NOT exist - first run (will create new session)`);
+}
+
 const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: { 
+    authStrategy: new LocalAuth({
+        dataPath: '.wwebjs_auth'
+    }),
+    puppeteer: {
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -266,8 +290,15 @@ async function enviarDatosFinales(numero, datos, chatID) {
     return null;
 }
 
-client.on('qr', qr => { qrcode.generate(qr, { small: true }); });
-client.on('ready', () => { console.log('🚀 ALFABOT en línea'); });
+client.on('qr', qr => { 
+    console.error('🔴 ⚠️ QR CODE REQUESTED - Session not found or expired');
+    console.error('📝 This means: Local storage is empty or corrupted');
+    qrcode.generate(qr, { small: true }); 
+});
+client.on('ready', () => { 
+    console.log('🚀 ALFABOT en línea'); 
+    console.log('✅ Session loaded successfully from .wwebjs_auth/');
+});
 client.on('loading_screen', (percent, message) => {
     console.log(`📶 Cargando WhatsApp Web: ${percent}% - ${message}`);
 });

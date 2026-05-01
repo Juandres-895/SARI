@@ -8,7 +8,7 @@ process.on('uncaughtException', (error) => {
     console.error('❌ Excepción no capturada:', error);
     // Reiniciar el bot después de un error crítico
     setTimeout(() => {
-        console.log('🔄 Reiniciando bot...'); 
+        console.log('🔄 Reiniciando bot...');
         process.exit(1);
     }, 5000);
 });
