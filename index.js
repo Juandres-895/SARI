@@ -112,44 +112,17 @@ try {
 }
 
 // Limpiar locks del navegador ANTES de inicializar (evita: browser already running)
+// NOTA: El entrypoint.sh ya limpia los locks antes de que Node inicie,
+// pero mantenemos esta lógica como fallback adicional
 const sessionPath = path.join(process.cwd(), '.wwebjs_auth', 'session');
-const lockFiles = ['SingletonLock', 'SingletonCookie', 'SingletonSocket'];
 try {
-    // Crear carpeta session si no existe (sin intentar chmod en volumen montado)
+    // Crear carpeta session si no existe
     if (!fs.existsSync(sessionPath)) {
         fs.mkdirSync(sessionPath, { recursive: true });
         console.log(`📁 Carpeta session creada: ${sessionPath}`);
     }
-    
-    // Limpiar TODOS los locks de forma más agresiva
-    for (const file of lockFiles) {
-        const filePath = path.join(sessionPath, file);
-        try {
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log(`🧹 Lock eliminado: ${file}`);
-            }
-        } catch (e) {
-            console.warn(`⚠️  No se pudo eliminar lock ${file}: ${e.message || e}`);
-        }
-    }
-    
-    // Intentar limpiar todo el directorio session si aún hay locks
-    // (solo en Docker/Railway donde es seguro)
-    if (isCloudRuntime) {
-        try {
-            const files = fs.readdirSync(sessionPath);
-            const lockRelated = files.filter(f => f.includes('Lock') || f.includes('lock') || f.includes('Socket'));
-            for (const f of lockRelated) {
-                fs.unlinkSync(path.join(sessionPath, f));
-                console.log(`🧹 Archivo relacionado eliminado: ${f}`);
-            }
-        } catch (e) {
-            // Ignorar errores al listar
-        }
-    }
 } catch (err) {
-    console.warn(`⚠️  Error limpiando locks: ${err.message}`);
+    console.warn(`⚠️  Error creando session path: ${err.message}`);
 }
 
 // Configuración de Puppeteer
@@ -452,7 +425,7 @@ client.on('message_create', async msg => {
                 if (resBusqueda.data && resBusqueda.data.encontrado) {
                     const usr = resBusqueda.data.datos;
                     datosUsuario[chatID] = {
-                        nombre: usr.nombre,
+                        nombre: `${usr.nombre || ''} ${usr.apellido || ''}`.trim(),
                         institucion: usr.institucion,
                         municipio: usr.municipio,
                         cargo: usr.cargo
