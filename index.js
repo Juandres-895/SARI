@@ -115,6 +115,28 @@ try {
     console.warn(`⚠️  Error ajustando permisos de .wwebjs_auth: ${err.message}`);
 }
 
+// Limpiar locks del navegador ANTES de inicializar (evita: browser already running)
+const sessionPath = path.join(process.cwd(), '.wwebjs_auth', 'session');
+const lockFiles = ['SingletonLock', 'SingletonCookie', 'SingletonSocket'];
+try {
+    if (!fs.existsSync(sessionPath)) {
+        fs.mkdirSync(sessionPath, { recursive: true, mode: 0o777 });
+    }
+    for (const file of lockFiles) {
+        const filePath = path.join(sessionPath, file);
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log(`🧹 Lock eliminado: ${file}`);
+            }
+        } catch (e) {
+            console.warn(`⚠️  No se pudo eliminar lock ${file}: ${e.message || e}`);
+        }
+    }
+} catch (err) {
+    console.warn(`⚠️  Error limpiando locks: ${err.message}`);
+}
+
 // Configuración de Puppeteer
 const puppeteerConfig = {
     args: puppeteerArgs,
