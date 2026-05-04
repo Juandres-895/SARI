@@ -115,15 +115,16 @@ try {
     console.warn(`⚠️  Error ajustando permisos de .wwebjs_auth: ${err.message}`);
 }
 
-// Configuración de Puppeteer: especificar Chrome en Docker
+// Configuración de Puppeteer
 const puppeteerConfig = {
     args: puppeteerArgs,
     headless: 'new'
 };
 
+// En Docker, Puppeteer ya está preinstalado y configurado en la imagen ghcr.io/puppeteer/puppeteer:latest
+// No especificamos executablePath para dejar que encuentre Chrome automáticamente
 if (isCloudRuntime) {
-    puppeteerConfig.executablePath = '/usr/bin/chromium-browser';
-    console.log('🐳 Configurado para Docker - usando Chrome en /usr/bin/chromium-browser');
+    console.log('🐳 Usando imagen oficial de Puppeteer - Chrome busca automáticamente');
 }
 
 const client = new Client({
