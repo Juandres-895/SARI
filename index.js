@@ -100,28 +100,28 @@ const puppeteerArgs = isCloudRuntime
         // "Navigating frame was detached" al inicializar WhatsApp Web.
     ];
 
-// Asegurar que la carpeta .wwebjs_auth existe con permisos correctos
+// Asegurar que la carpeta .wwebjs_auth existe (sin intentar chmod)
 const authDir = path.join(process.cwd(), '.wwebjs_auth');
 try {
     if (!fs.existsSync(authDir)) {
-        fs.mkdirSync(authDir, { recursive: true, mode: 0o777 });
-        console.log(`📁 Carpeta .wwebjs_auth creada con permisos: 0o777`);
-    } else {
-        // Asegurar permisos incluso si la carpeta ya existe
-        fs.chmodSync(authDir, 0o777);
-        console.log(`📁 Permisos de .wwebjs_auth ajustados a: 0o777`);
+        fs.mkdirSync(authDir, { recursive: true });
+        console.log(`📁 Carpeta .wwebjs_auth creada`);
     }
 } catch (err) {
-    console.warn(`⚠️  Error ajustando permisos de .wwebjs_auth: ${err.message}`);
+    console.warn(`⚠️  Error creando .wwebjs_auth: ${err.message}`);
 }
 
 // Limpiar locks del navegador ANTES de inicializar (evita: browser already running)
 const sessionPath = path.join(process.cwd(), '.wwebjs_auth', 'session');
 const lockFiles = ['SingletonLock', 'SingletonCookie', 'SingletonSocket'];
 try {
+    // Crear carpeta session si no existe (sin intentar chmod en volumen montado)
     if (!fs.existsSync(sessionPath)) {
-        fs.mkdirSync(sessionPath, { recursive: true, mode: 0o777 });
+        fs.mkdirSync(sessionPath, { recursive: true });
+        console.log(`📁 Carpeta session creada: ${sessionPath}`);
     }
+    
+    // Limpiar TODOS los locks de forma más agresiva
     for (const file of lockFiles) {
         const filePath = path.join(sessionPath, file);
         try {
@@ -131,6 +131,21 @@ try {
             }
         } catch (e) {
             console.warn(`⚠️  No se pudo eliminar lock ${file}: ${e.message || e}`);
+        }
+    }
+    
+    // Intentar limpiar todo el directorio session si aún hay locks
+    // (solo en Docker/Railway donde es seguro)
+    if (isCloudRuntime) {
+        try {
+            const files = fs.readdirSync(sessionPath);
+            const lockRelated = files.filter(f => f.includes('Lock') || f.includes('lock') || f.includes('Socket'));
+            for (const f of lockRelated) {
+                fs.unlinkSync(path.join(sessionPath, f));
+                console.log(`🧹 Archivo relacionado eliminado: ${f}`);
+            }
+        } catch (e) {
+            // Ignorar errores al listar
         }
     }
 } catch (err) {

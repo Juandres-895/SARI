@@ -8,8 +8,8 @@ RUN npm ci --only=production
 
 COPY . .
 
-# Crear directorio para auth con permisos completos
-RUN mkdir -p .wwebjs_auth && chmod 777 .wwebjs_auth
+# Crear directorio para auth (permisos se manejarán en runtime)
+RUN mkdir -p .wwebjs_auth
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
